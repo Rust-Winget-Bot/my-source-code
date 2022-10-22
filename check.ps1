@@ -71,7 +71,7 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             git commit -m"add Rustlang.Rust.$toolchain version $version"
             git push -u origin rust-$version-$toolchainLower;
             # Uncomment this once we've seen it work a few times and are happy with it.
-            # gh pr create --title "add Rustlang.Rust.$toolchain version $version" --body "I'm a bot and this PR was opened automatically. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/bot-issues/issues"
+            # gh pr create --title "add Rustlang.Rust.$toolchain version $version" --body "I'm a bot and this PR was opened automatically. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues"
         }
     }
 }
