@@ -51,27 +51,12 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 if (-not($sha256 -eq $sha256_2)) {
                     throw "Sha256 returned two different results, shutting down to lack of confidence in sha value"
                 }
-                $productCode = "";
+                $productCode = "{$((New-Guid).Guid.ToUpper())}";
                 $arch = if ($installer.Contains("i686")) {
-                    if ($toolchain -eq "MSVC") {
-                        $productCode = "{FBAC7273-35AB-4942-8B6A-A3407C4558C2}"
-                    } elseif ($toolchain -eq "GNU") {
-                        $productCode = "{4120AD8B-3C6B-4EBD-9646-DF20F3120208}"
-                    }
                     "x86"
                 } elseif ($installer.Contains("x86_64")) {
-                    if ($toolchain -eq "MSVC") {
-                        $productCode = "{F89628A9-D84F-486B-83F5-092007FA03C9}"
-                    } elseif ($toolchain -eq "GNU") {
-                        $productCode = "{C228EF57-CC84-4973-A41B-60C8861E51FF}"
-                    }
                     "x64"
                 } elseif ($installer.Contains("aarch64")) {
-                    if ($toolchain -eq "MSVC") {
-                        $productCode = "{4205D4CC-DCFE-4A97-9B95-E9B46D3FED71}"
-                    } elseif ($toolchain -eq "GNU") {
-                        # Nothing to do, arm64 gnu doesn't exist.
-                    }
                     "arm64"
                 }
                 $bits = if ($arch -eq "x86") {
