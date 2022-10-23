@@ -1,0 +1,17 @@
+name: Run PS Script
+
+on:
+  schedule:
+    - cron: '0 9 * * 5'
+  workflow_dispatch:
+    
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    name: Run check.ps1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: pwsh check.ps1
