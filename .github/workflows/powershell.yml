@@ -12,6 +12,9 @@ jobs:
   evaluate:
     name: Run check.ps1
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - run: pwsh check.ps1
+      - run: ./check.ps1
+        shell: pwsh
