@@ -1,5 +1,3 @@
-winget install -e --id Git.Git -h --accept-package-agreements --accept-source-agreements
-winget install -e --id GitHub.cli -h --accept-package-agreements --accept-source-agreements
 Install-Module -Name powershell-yaml
 Import-Module powershell-yaml
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User");
