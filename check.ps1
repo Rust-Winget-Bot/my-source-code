@@ -119,3 +119,13 @@ foreach ($toolchain in @("MSVC", "GNU")) {
         }
     }
 }
+$closedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=closed --limit 10 | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
+$mergedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=merged --limit 10 | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
+foreach $pr in $closedPRs {
+    git push origin -d $pr
+}
+
+foreach $pr in $mergedPRs {
+    git push origin -d $pr
+}
+
