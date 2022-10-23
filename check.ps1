@@ -1,18 +1,19 @@
-winget install -e --id Git.Git -h --accept-package-agreements
-winget install -e --id GitHub.cli -h --accept-package-agreements
-winget install wingetcreate -h --accept-package-agreements
-Install-Module -Name powershell-yaml
+winget install -e --id Git.Git -h --accept-package-agreements --accept-source-agreements
+winget install -e --id GitHub.cli -h --accept-package-agreements --accept-source-agreements
+winget install wingetcreate -h --accept-package-agreements --accept-source-agreements
+Install-Module -Name powershell-yaml -AcceptLicense
 Import-Module powershell-yaml
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User");
 gh auth setup-git
 gh repo clone "Rust-Winget-Bot/winget-pkgs"
-cd winget-pkgs
+Set-Location winget-pkgs
 git pull upstream master
 git push
-$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git | Foreach {(($_ -split '\t')[1]).Substring(10)} | Where-Object {!$_.Contains('release') -and !$_.Contains('^')} | Select -First 3;
-$myPrs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=all | Foreach {((($_ -split '\t')[2]) -split ':')[1]};
+$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git | ForEach-Object {(($_ -split '\t')[1]).Substring(10)} | Where-Object {!$_.Contains('release') -and !$_.Contains('^')} | Select-Object -First 3;
+$myPrs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=all | ForEach-Object {((($_ -split '\t')[2]) -split ':')[1]};
 foreach ($toolchain in @("MSVC", "GNU")) {
     $toolchainLower = $toolchain.ToLower();
-    $publishedVersions = winget show --id Rustlang.Rust.$toolchain --versions | Select -Skip 4 -First 5;
+    $publishedVersions = winget show --id "Rustlang.Rust.$toolchain" --versions | Select-Object -Skip 4 -First 5;
     foreach ($version in $lastFewVersions) {
         if ($publishedVersions.Contains($version)) {
             continue;
