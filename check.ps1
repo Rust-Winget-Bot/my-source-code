@@ -66,15 +66,15 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             };
              if ($toolchain -eq "MSVC") {
                 $installers = @(
-		  "https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi",
-		  "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi",
-		  "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi"
-		);
+          "https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi",
+          "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi",
+          "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi"
+        );
             } else {
                 $installers = @(
-		  "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi",
-		  "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi"
-		);
+          "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi",
+          "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi"
+        );
             }
             foreach ($installer in $installers) {
                 $path = $installer.Substring($installer.LastIndexOf('/') + 1);
@@ -166,9 +166,9 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             git commit -m"add Rustlang.Rust.$toolchain version $version"
             git push -u origin rust-$version-$toolchainLower;
             # Uncomment this once we've seen it work a few times and are happy with it.
-	    #
-	    # $title = "add Rustlang.Rust.$toolchain version $version";
-	    # $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
+            #
+            # $title = "add Rustlang.Rust.$toolchain version $version";
+            # $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
             # gh pr create --title $title --body $body
         }
     }
