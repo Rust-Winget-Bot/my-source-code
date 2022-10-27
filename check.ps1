@@ -12,6 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Load up code for getting product codes from an MSI file. Defines $msiTools
+.\Get-MSI-ProductCode.ps1
+
 Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
 Install-Module -Name powershell-yaml -AcceptLicense
 Import-Module powershell-yaml
@@ -19,7 +22,7 @@ gh auth setup-git
 git config --global user.email "kieseljake+rust-winget-bot@live.com"
 git config --global user.name "Rust-Winget-Bot"
 gh repo clone "Rust-Winget-Bot/winget-pkgs"
-cd winget-pkgs
+Set-Location winget-pkgs
 git pull upstream master
 git push
 $yamlHeader = @'
@@ -28,11 +31,11 @@ $yamlHeader = @'
 
 
 '@
-$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git | Foreach-Object {(($_ -split '\t')[1]).Substring(10)} | Where-Object {!$_.Contains('release') -and !$_.Contains('^')} | Select -First 3;
+$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git | Foreach-Object {(($_ -split '\t')[1]).Substring(10)} | Where-Object {!$_.Contains('release') -and !$_.Contains('^')} | Select-Object -First 3;
 $myPrs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=all | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
 foreach ($toolchain in @("MSVC", "GNU")) {
     $toolchainLower = $toolchain.ToLower();
-    $publishedVersions = Get-ChildItem .\manifests\r\Rustlang\Rust\$toolchain | Foreach-Object {$_.Name} | Where-Object {!$_.Contains('.validation')} | Select -Last 5
+    $publishedVersions = Get-ChildItem .\manifests\r\Rustlang\Rust\$toolchain | Foreach-Object {$_.Name} | Where-Object {!$_.Contains('.validation')} | Select-Object -Last 5
     foreach ($version in $lastFewVersions) {
         if ($publishedVersions.Contains($version)) {
             continue;
@@ -62,16 +65,26 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             foreach ($installer in $installers) {
                 $path = $installer.Substring($installer.LastIndexOf('/') + 1);
                 Write-Output "Now downloading $path from $installer"
-                curl -LO $installer
+                Invoke-WebRequest -Uri $installer -Outfile $path
+                if(!$?) {
+                    Write-Output "Failed to download file, skipping"
+                    continue;
+                }
                 $sha256 = (Get-FileHash $path -Algorithm SHA256).Hash;
                 Remove-Item $path;
-                curl -LO $installer
+                Invoke-WebRequest -Uri $installer -Outfile $path
+                if(!$?) {
+                    Write-Output "Failed to download file, skipping"
+                    continue;
+                }
                 $sha256_2 = (Get-FileHash $path -Algorithm SHA256).Hash;
-                Remove-Item $path;
                 if (-not($sha256 -eq $sha256_2)) {
                     throw "Sha256 returned two different results, shutting down to lack of confidence in sha value"
                 }
-                $productCode = "{$((New-Guid).Guid.ToUpper())}";
+                $productCode = "{$($msiTools.GetProductCode($path))}";
+                $productName = "{$($msiTools.GetProductName($path))}";
+                $productVersion = "{$($msiTools.GetProductVersion($path))}";
+                Remove-Item $path;
                 $arch = if ($installer.Contains("i686")) {
                     "x86"
                 } elseif ($installer.Contains("x86_64")) {
@@ -89,8 +102,8 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 $installerEntry = New-Object –TypeName PSObject;
                 $appsAndFeaturesEntry = New-Object –TypeName PSObject;
                 $appsAndFeaturesEntry | Add-Member -MemberType NoteProperty -Name ProductCode -Value $productCode
-                $appsAndFeaturesEntry | Add-Member -MemberType NoteProperty -Name DisplayName -Value "Rust $version ($toolchain $bits)";
-                $appsAndFeaturesEntry | Add-Member -MemberType NoteProperty -Name DisplayVersion -Value "$version.0"
+                $appsAndFeaturesEntry | Add-Member -MemberType NoteProperty -Name DisplayName -Value $productName
+                $appsAndFeaturesEntry | Add-Member -MemberType NoteProperty -Name DisplayVersion -Value $productVersion
                 $installerEntry | Add-Member -MemberType NoteProperty -Name Architecture -Value $arch
                 $installerEntry | Add-Member -MemberType NoteProperty -Name InstallerUrl -Value $installer
                 $installerEntry | Add-Member -MemberType NoteProperty -Name InstallerSha256 -Value $sha256
