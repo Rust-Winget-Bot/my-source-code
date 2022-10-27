@@ -30,11 +30,18 @@ $yamlHeader = @'
 
 
 '@
-$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git | Select-String -Pattern "refs/tags/(\d+?\.\d+?\.\d+?$)" | ForEach-Object { $_.Matches[0].Groups[1].Value }| Select-Object -First 3;
-$myPrs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=all | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
+$lastFewVersions = git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git
+  | Select-String -Pattern "refs/tags/(\d+?\.\d+?\.\d+?$)"
+  | ForEach-Object { $_.Matches[0].Groups[1].Value }
+  | Select-Object -First 3;
+$myPrs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=all
+  | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
 foreach ($toolchain in @("MSVC", "GNU")) {
     $toolchainLower = $toolchain.ToLower();
-    $publishedVersions = Get-ChildItem .\manifests\r\Rustlang\Rust\$toolchain | Foreach-Object {$_.Name} | Where-Object {!$_.Contains('.validation')} | Select-Object -Last 5
+    $publishedVersions = Get-ChildItem .\manifests\r\Rustlang\Rust\$toolchain
+      | Foreach-Object {$_.Name}
+      | Where-Object {!$_.Contains('.validation')}
+      | Select-Object -Last 5
     foreach ($version in $lastFewVersions) {
         if ($publishedVersions.Contains($version)) {
             continue;
@@ -58,9 +65,16 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 Installers = @(); # To be filled later
             };
              if ($toolchain -eq "MSVC") {
-                $installers = @("https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi", "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi", "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi")
+                $installers = @(
+		  "https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi",
+		  "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi",
+		  "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi"
+		);
             } else {
-                $installers = @("https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi", "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi")
+                $installers = @(
+		  "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi",
+		  "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi"
+		);
             }
             foreach ($installer in $installers) {
                 $path = $installer.Substring($installer.LastIndexOf('/') + 1);
@@ -114,8 +128,7 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 };
                 $yamlObject.Installers += $installerEntry
             }
-            $newYamlData = ConvertTo-YAML $yamlObject;
-            $newYamlData = -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, (ConvertTo-YAML $yamlObject));
             Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.locale.en-US.yaml";
             $yamlObject = New-Object –TypeName PSObject -Property @{
@@ -137,8 +150,7 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 ManifestVersion = "1.2.0";
                 Tags = @($toolchainLower, "rust", "windows");
             };
-            $newYamlData = ConvertTo-YAML $yamlObject;
-            $newYamlData = -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, (ConvertTo-YAML $yamlObject));
             Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.yaml";
             $yamlObject = New-Object –TypeName PSObject -Property @{
@@ -148,24 +160,26 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 ManifestType = "version";
                 ManifestVersion = "1.2.0";
             };
-            $newYamlData = ConvertTo-YAML $yamlObject;
-            $newYamlData = -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, (ConvertTo-YAML $yamlObject));
             Set-Content -Path $yamlPath -Value $newYamlData;
             git add --all .
             git commit -m"add Rustlang.Rust.$toolchain version $version"
             git push -u origin rust-$version-$toolchainLower;
             # Uncomment this once we've seen it work a few times and are happy with it.
-            # gh pr create --title "add Rustlang.Rust.$toolchain version $version" --body "I'm a bot and this PR was opened automatically. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues"
+	    #
+	    # $title = "add Rustlang.Rust.$toolchain version $version";
+	    # $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
+            # gh pr create --title $title --body $body
         }
     }
 }
-$closedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=closed --limit 10 | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
-$mergedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=merged --limit 10 | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
-foreach ($pr in $closedPRs) {
-    git push origin -d $pr
-}
+$closedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=closed --limit 10
+  | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
 
-foreach ($pr in $mergedPRs) {
+$mergedPRs = gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=merged --limit 10
+  | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
+
+foreach ($pr in ($closedPRs + $mergedPrs)) {
     git push origin -d $pr
 }
 
