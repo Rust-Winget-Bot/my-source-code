@@ -13,8 +13,7 @@
 #   limitations under the License.
 
 # Load up code for getting product codes from an MSI file.
-$msiTools = Add-Type -PassThru -Namespace 'Microsoft.Windows.DesiredStateConfiguration.PackageResource' -Name 'MsiTools' -Using 'System.Text' -MemberDefinition $(Get-Content "MsiTools.cs")
-
+$msiTools = Add-Type -PassThru -Name 'MsiTools' -Using 'System.Text' -MemberDefinition $(Get-Content "MsiTools.cs")
 Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
 Install-Module -Name powershell-yaml -AcceptLicense
 Import-Module powershell-yaml
@@ -83,9 +82,10 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 if (-not($sha256 -eq $sha256_2)) {
                     throw "Sha256 returned two different results, shutting down to lack of confidence in sha value"
                 }
-                $productCode = "{$($msiTools.GetProductCode($path))}";
-                $productName = "{$($msiTools.GetProductName($path))}";
-                $productVersion = "{$($msiTools.GetProductVersion($path))}";
+                $absolutePath = Resolve-Path $path;
+                $productCode = $msiTools::GetProductCode($absolutePath)
+                $productName = $msiTools::GetProductName($absolutePath);
+                $productVersion = $msiTools::GetProductVersion($absolutePath);
                 Remove-Item $path;
                 $arch = if ($installer.Contains("i686")) {
                     "x86"
@@ -113,7 +113,8 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 $yamlObject.Installers += $installerEntry
             }
             $newYamlData = ConvertTo-YAML $yamlObject;
-            Set-Content -Path $yamlPath -Value -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, $newYamlData);
+            Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.locale.en-US.yaml";
             $yamlObject = New-Object –TypeName PSObject;
             $yamlObject | Add-Member -MemberType NoteProperty -Name PackageIdentifier -Value "Rustlang.Rust.$toolchain"
@@ -130,7 +131,8 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             $yamlObject | Add-Member -MemberType NoteProperty -Name ManifestVersion -Value "1.2.0"
             $yamlObject | Add-Member -MemberType NoteProperty -Name Tags -Value @($toolchainLower, "rust", "windows")
             $newYamlData = ConvertTo-YAML $yamlObject;
-            Set-Content -Path $yamlPath -Value -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, $newYamlData);
+            Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.yaml";
             $yamlObject = New-Object –TypeName PSObject;
             $yamlObject | Add-Member -MemberType NoteProperty -Name PackageIdentifier -Value "Rustlang.Rust.$toolchain"
@@ -139,7 +141,8 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             $yamlObject | Add-Member -MemberType NoteProperty -Name ManifestType -Value "version"
             $yamlObject | Add-Member -MemberType NoteProperty -Name ManifestVersion -Value "1.2.0"
             $newYamlData = ConvertTo-YAML $yamlObject;
-            Set-Content -Path $yamlPath -Value -join($yamlHeader, $newYamlData);
+            $newYamlData = -join($yamlHeader, $newYamlData);
+            Set-Content -Path $yamlPath -Value $newYamlData;
             git add --all .
             git commit -m"add Rustlang.Rust.$toolchain version $version"
             git push -u origin rust-$version-$toolchainLower;

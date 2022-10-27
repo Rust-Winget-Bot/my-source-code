@@ -1,5 +1,5 @@
 [DllImport("msi.dll", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = true, ExactSpelling = true)]
-private static extern UInt32 MsiOpenPackageW(string szPackagePath, out IntPtr hProduct);
+private static extern UInt32 MsiOpenPackageExW(string szPackagePath, uint openOptions, out IntPtr hProduct);
 [DllImport("msi.dll", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = true, ExactSpelling = true)]
 private static extern uint MsiCloseHandle(IntPtr hAny);
 [DllImport("msi.dll", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = true, ExactSpelling = true)]
@@ -9,10 +9,10 @@ private static string GetPackageProperty(string msi, string property)
     IntPtr MsiHandle = IntPtr.Zero;
     try
     {
-        var res = MsiOpenPackageW(msi, out MsiHandle);
+        var res = MsiOpenPackageExW(msi, 1, out MsiHandle);
         if (res != 0)
         {
-            return null;
+            throw new Exception("Failed to open package " + res.ToString());
         }
         int length = 256;
         var buffer = new StringBuilder(length);
