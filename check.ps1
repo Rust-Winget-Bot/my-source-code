@@ -12,8 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-# Load up code for getting product codes from an MSI file. Defines $msiTools
-.\Get-MSI-ProductCode.ps1
+# Load up code for getting product codes from an MSI file.
+$msiTools = Add-Type -PassThru -Namespace 'Microsoft.Windows.DesiredStateConfiguration.PackageResource' -Name 'MsiTools' -Using 'System.Text' -MemberDefinition $(Get-Content "MsiTools.cs")
 
 Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
 Install-Module -Name powershell-yaml -AcceptLicense
@@ -45,7 +45,8 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 continue;
             }
             Write-Output "Creating branch for $version $toolchain"
-            git checkout master;
+            # git checkout master;
+            git checkout 790a6ef3d0ae2fc1730f934f653d0d100ab1c40e
             git checkout -b rust-$version-$toolchainLower;
             New-Item "manifests/r/Rustlang/Rust/$toolchain/$version/" -ItemType Directory -ea 0
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.installer.yaml";

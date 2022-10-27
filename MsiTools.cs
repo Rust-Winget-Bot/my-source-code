@@ -1,5 +1,3 @@
-# C# ensues
-$sig = @'
 [DllImport("msi.dll", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = true, ExactSpelling = true)]
 private static extern UInt32 MsiOpenPackageW(string szPackagePath, out IntPtr hProduct);
 [DllImport("msi.dll", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = true, ExactSpelling = true)]
@@ -41,6 +39,3 @@ public static string GetProductVersion(string msi)
 {
     return GetPackageProperty(msi, "ProductVersion");
 }
-'@
-$msiTools = Add-Type -PassThru -Namespace 'Microsoft.Windows.DesiredStateConfiguration.PackageResource' -Name 'MsiTools' -Using 'System.Text' -MemberDefinition $sig
-
