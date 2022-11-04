@@ -54,27 +54,27 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             git checkout -b rust-$version-$toolchainLower;
             New-Item "manifests/r/Rustlang/Rust/$toolchain/$version/" -ItemType Directory -ea 0
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.installer.yaml";
-            $yamlObject = New-Object –TypeName PSObject -Property @{
+            $yamlObject = [ordered]@{
                 PackageIdentifier = "Rustlang.Rust.$toolchain";
                 PackageVersion = $version;
                 MinimumOSVersion = "10.0.0.0";
                 InstallerType = "wix";
                 UpgradeBehavior = "uninstallPrevious";
+                Installers = @(); # To be filled later
                 ManifestType = "installer";
                 ManifestVersion = "1.2.0";
-                Installers = @(); # To be filled later
             };
              if ($toolchain -eq "MSVC") {
                 $installers = @(
-          "https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi",
-          "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi",
-          "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi"
-        );
+                    "https://static.rust-lang.org/dist/rust-$version-aarch64-pc-windows-msvc.msi",
+                    "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-msvc.msi",
+                    "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-msvc.msi"
+                );
             } else {
                 $installers = @(
-          "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi",
-          "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi"
-        );
+                    "https://static.rust-lang.org/dist/rust-$version-i686-pc-windows-gnu.msi",
+                    "https://static.rust-lang.org/dist/rust-$version-x86_64-pc-windows-gnu.msi"
+                );
             }
             foreach ($installer in $installers) {
                 $path = $installer.Substring($installer.LastIndexOf('/') + 1);
@@ -107,23 +107,17 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 } elseif ($installer.Contains("aarch64")) {
                     "arm64"
                 }
-                $bits = if ($arch -eq "x86") {
-                    "32-bit"
-                } elseif ($arch -eq "x64") {
-                    "64-bit"
-                } elseif ($arch -eq "arm64") {
-                    "arm64"
-                };
                 
-                $appsAndFeaturesEntry = New-Object –TypeName PSObject -Property @{
-                    ProductCode = $productCode;
+                $appsAndFeaturesEntry = [ordered]@{
                     DisplayName = $productName;
+                    ProductCode = $productCode;
                     DisplayVersion = $productVersion;
                 };
-                $installerEntry = New-Object –TypeName PSObject -Property @{
+                $installerEntry = [ordered]@{
                     Architecture = $arch;
                     InstallerUrl = $installer;
                     InstallerSha256 = $sha256;
+                    ProductCode = $productCode;
                     AppsAndFeaturesEntries = @($appsAndFeaturesEntry);
                 };
                 $yamlObject.Installers += $installerEntry
@@ -131,7 +125,7 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             $newYamlData = -join($yamlHeader, (ConvertTo-YAML $yamlObject));
             Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.locale.en-US.yaml";
-            $yamlObject = New-Object –TypeName PSObject -Property @{
+            $yamlObject = [ordered]@{
                 PackageIdentifier = "Rustlang.Rust.$toolchain";
                 PackageVersion = $version;
                 PackageLocale = "en-US";
@@ -146,14 +140,14 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 CopyrightUrl = "https://raw.githubusercontent.com/rust-lang/rust/master/COPYRIGHT";
                 ShortDescription = "this is the rust-lang built with $toolchainLower toolchain";
                 Moniker = "rust-$toolchainLower";
+                Tags = @($toolchainLower, "rust", "windows");
                 ManifestType = "defaultLocale";
                 ManifestVersion = "1.2.0";
-                Tags = @($toolchainLower, "rust", "windows");
             };
             $newYamlData = -join($yamlHeader, (ConvertTo-YAML $yamlObject));
             Set-Content -Path $yamlPath -Value $newYamlData;
             $yamlPath = "manifests/r/Rustlang/Rust/$toolchain/$version/Rustlang.Rust.$toolchain.yaml";
-            $yamlObject = New-Object –TypeName PSObject -Property @{
+            $yamlObject = [ordered]@{
                 PackageIdentifier = "Rustlang.Rust.$toolchain";
                 PackageVersion = $version;
                 DefaultLocale = "en-US";
@@ -165,11 +159,10 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             git add --all .
             git commit -m"add Rustlang.Rust.$toolchain version $version"
             git push -u origin rust-$version-$toolchainLower;
-            # Uncomment this once we've seen it work a few times and are happy with it.
-            #
-            # $title = "add Rustlang.Rust.$toolchain version $version";
-            # $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
-            # gh pr create --title $title --body $body
+
+            $title = "add Rustlang.Rust.$toolchain version $version";
+            $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
+            gh pr create --title $title --body $body
         }
     }
 }
