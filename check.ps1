@@ -44,7 +44,7 @@ Import-Module powershell-yaml
 Invoke-NativeCommand gh auth setup-git
 Invoke-NativeCommand git config --global user.email "kieseljake+rust-winget-bot@live.com"
 Invoke-NativeCommand git config --global user.name "Rust-Winget-Bot"
-Invoke-NativeCommand gh repo clone "Rust-Winget-Bot/winget-pkgs" -- --depth 1
+Invoke-NativeCommand gh repo clone "Rust-Winget-Bot/winget-pkgs" "--" --depth 1
 Set-Location winget-pkgs
 Invoke-NativeCommand git pull upstream master
 Invoke-NativeCommand git push
