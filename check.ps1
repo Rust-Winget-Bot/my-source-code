@@ -199,7 +199,7 @@ foreach ($toolchain in @("MSVC", "GNU")) {
 
             $title = "add Rustlang.Rust.$toolchain version $version";
             $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
-            Invoke-NativeCommand gh pr create --title $title --body $body --head rust-$version-$toolchainLower
+            Invoke-NativeCommand gh pr create --title $title --body $body --base master --head rust-$version-$toolchainLower --repo microsoft/winget-pkgs
         }
     }
 }
