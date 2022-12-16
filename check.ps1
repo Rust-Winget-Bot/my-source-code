@@ -195,6 +195,9 @@ foreach ($toolchain in @("MSVC", "GNU")) {
             Set-Content -Path $yamlPath -Value $newYamlData;
             Invoke-NativeCommand git add --all .
             Invoke-NativeCommand git commit -m"add Rustlang.Rust.$toolchain version $version"
+            Invoke-NativeCommand git push -u origin rust-$version-$toolchainLower
+            # Give GitHub a moment to propagate the presence of this new branch
+            sleep 5
 
             $title = "add Rustlang.Rust.$toolchain version $version";
             $body = "This PR is auto-generated. If there's something wrong, please file an issue at https://github.com/Rust-Winget-Bot/my-source-code/issues";
