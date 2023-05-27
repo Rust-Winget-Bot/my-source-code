@@ -18,6 +18,3 @@ jobs:
       - uses: actions/checkout@v3
       - run: ./check.ps1
         shell: pwsh
-      - uses: gautamkrishnar/keepalive-workflow@v1
-        with:
-          gh_token: ${{ secrets.GH_TOKEN }}
