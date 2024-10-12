@@ -135,7 +135,6 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 $absolutePath = Resolve-Path $path;
                 $productCode = $msiTools::GetProductCode($absolutePath)
                 $productName = $msiTools::GetProductName($absolutePath);
-                $productVersion = $msiTools::GetProductVersion($absolutePath);
                 Remove-Item $path;
                 $arch = if ($installer.Contains("i686")) {
                     "x86"
@@ -148,7 +147,6 @@ foreach ($toolchain in @("MSVC", "GNU")) {
                 $appsAndFeaturesEntry = [ordered]@{
                     DisplayName = $productName;
                     ProductCode = $productCode;
-                    DisplayVersion = $productVersion;
                 };
                 $installerEntry = [ordered]@{
                     Architecture = $arch;
