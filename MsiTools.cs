@@ -35,7 +35,3 @@ public static string GetProductName(string msi)
 {
     return GetPackageProperty(msi, "ProductName");
 }
-public static string GetProductVersion(string msi)
-{
-    return GetPackageProperty(msi, "ProductVersion");
-}
