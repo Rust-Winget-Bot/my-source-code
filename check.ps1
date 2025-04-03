@@ -83,7 +83,7 @@ foreach ($version in $lastFewVersions) {
             continue;
         }
         if (-not $initialSetupExecuted) {
-            InitalSetup
+            InitialSetup
             $initialSetupExecuted = $true
         }
         $publishedVersions = Get-ChildItem .\manifests\r\Rustlang\Rust\$toolchain
