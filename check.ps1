@@ -42,9 +42,6 @@ function InitialSetup() {
     Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
     Install-Module -Name powershell-yaml -AcceptLicense
     Import-Module powershell-yaml
-    Invoke-NativeCommand gh auth setup-git
-    Invoke-NativeCommand git config --global user.email "kieseljake+rust-winget-bot@live.com"
-    Invoke-NativeCommand git config --global user.name "Rust-Winget-Bot"
     Invoke-NativeCommand gh repo sync "Rust-Winget-Bot/winget-pkgs"
     Invoke-NativeCommand gh repo clone "Rust-Winget-Bot/winget-pkgs" "--" --depth 1
     Set-Location winget-pkgs
@@ -70,6 +67,9 @@ $yamlHeaderVersion = @'
 
 '@
 $initialSetupExecuted = $false
+Invoke-NativeCommand gh auth setup-git
+Invoke-NativeCommand git config --global user.email "kieseljake+rust-winget-bot@live.com"
+Invoke-NativeCommand git config --global user.name "Rust-Winget-Bot"
 $lastFewVersions = Invoke-NativeCommand git ls-remote --sort=-v:refname --tags https://github.com/rust-lang/rust.git
   | Select-String -Pattern "refs/tags/(\d+?\.\d+?\.\d+?$)"
   | ForEach-Object { $_.Matches[0].Groups[1].Value }
