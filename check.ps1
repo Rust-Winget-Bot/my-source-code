@@ -219,7 +219,8 @@ $branches = Invoke-NativeCommand git ls-remote --heads https://github.com/Rust-W
 
 foreach ($pr in $closedPRs) {
     if ($branches.Contains($pr)) {
-        Invoke-NativeCommand git push origin -d $pr
+        Invoke-NativeCommand git push https://github.com/Rust-Winget-Bot/winget-pkgs.git -d $pr
     }
 }
+
 
