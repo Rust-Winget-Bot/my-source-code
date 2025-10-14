@@ -210,17 +210,21 @@ foreach ($version in $lastFewVersions) {
         Invoke-NativeCommand gh pr create --title "$title" --body "$body" --repo microsoft/winget-pkgs --base master --head Rust-Winget-Bot:rust-$version-$toolchainLower
     }
 }
-$closedPRs = Invoke-NativeCommand gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=closed --limit 10
-  | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
+if ($initialSetupExecuted) {
+    $closedPRs = Invoke-NativeCommand gh pr list --author "Rust-Winget-Bot" --repo "microsoft/winget-pkgs" --state=closed --limit 10
+        | Foreach-Object {((($_ -split '\t')[2]) -split ':')[1]};
 
-$branches = Invoke-NativeCommand git ls-remote --heads https://github.com/Rust-Winget-Bot/winget-pkgs.git
-  | Select-String -Pattern "refs/heads/(.+$)"
-  | ForEach-Object { $_.Matches[0].Groups[1].Value }
+    $branches = Invoke-NativeCommand git ls-remote --heads https://github.com/Rust-Winget-Bot/winget-pkgs.git
+      | Select-String -Pattern "refs/heads/(.+$)"
+      | ForEach-Object { $_.Matches[0].Groups[1].Value }
 
-foreach ($pr in $closedPRs) {
-    if ($branches.Contains($pr)) {
-        Invoke-NativeCommand git push https://github.com/Rust-Winget-Bot/winget-pkgs.git -d $pr
+    foreach ($pr in $closedPRs) {
+        if ($branches.Contains($pr)) {
+            Invoke-NativeCommand git push origin -d $pr
+        }
     }
 }
+
+
 
 
